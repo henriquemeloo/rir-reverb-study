@@ -63,7 +63,21 @@ def calculate_c80(rir, fs, fc=None):
     if fc:
         sos = oct_bandpass_filter(fc, fs)
         rir = signal.sosfilt(sos, rir)
+    rir = rir / np.max(rir)
     index_80 = int(80e-3 * fs)
     c80 = np.sum(rir[:index_80]**2) / np.sum(rir[index_80:]**2)
     c80dB = 10 * np.log10(c80)
     return c80dB
+
+
+def calculate_d50(rir, fs, fc=None):
+    # Remove silence in beggining
+    rir = rir[np.argmax(rir):]
+    if fc:
+        sos = oct_bandpass_filter(fc, fs)
+        rir = signal.sosfilt(sos, rir)
+    rir = rir / np.max(rir)
+    index_50 = int(50e-3 * fs)
+    d50 = np.sum(rir[:index_50]**2) / np.sum(rir**2)
+    d50dB = 10 * np.log10(d50)
+    return d50dB
