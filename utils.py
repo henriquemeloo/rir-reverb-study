@@ -28,7 +28,6 @@ def oct_bandpass_filter(fc, fs):
 
 def plot_filter_bank(fs):
     fig, ax = plt.subplots(figsize=(14,8))
-
     for fc in [16, 31.5, 63, 125, 250, 500, 1000, 2000, 4000, 8000, 16000]:
         sos = oct_bandpass_filter(fc, fs)
         w, H = signal.sosfreqz(sos, fs=fs, worN=2**15)
@@ -51,9 +50,20 @@ def calculate_t60(rir, fs, fc=None, plot=False):
     sch_db = 10 * np.log10(sch / np.max(sch))
     if plot:
         plt.plot(sch_db)
-
     a = sch_db[np.argmax(sch_db):]
     start_sample = np.argmax(a <= -5)
     stop_sample = np.argmax(a <= -35)
     t60 = 2 * (stop_sample - start_sample) / fs
     return t60
+
+
+def calculate_c80(rir, fs, fc=None):
+    # Remove silence in beggining
+    rir = rir[np.argmax(rir):]
+    if fc:
+        sos = oct_bandpass_filter(fc, fs)
+        rir = signal.sosfilt(sos, rir)
+    index_80 = int(80e-3 * fs)
+    c80 = np.sum(rir[:index_80]**2) / np.sum(rir[index_80:]**2)
+    c80dB = 10 * np.log10(c80)
+    return c80dB
