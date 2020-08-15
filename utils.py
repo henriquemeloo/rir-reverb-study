@@ -18,6 +18,11 @@ def load_wav(path, fs, plot=False, play=False):
         return audio
 
 
+def reverb(audio, rir, fs):
+    reverbed = np.convolve(audio, rir)
+    return reverbed, display.Audio(reverbed, rate=fs)
+
+
 def oct_bandpass_filter(fc, fs):
     fl = fc / 2 ** (1/6)
     fu = fc * 2 ** (1/6)
@@ -26,7 +31,7 @@ def oct_bandpass_filter(fc, fs):
     return sos
 
 
-def plot_filter_bank(fs):
+def plot_filter_bank(fs, fname=None):
     fig, ax = plt.subplots(figsize=(14,8))
     for fc in [16, 31.5, 63, 125, 250, 500, 1000, 2000, 4000, 8000, 16000]:
         sos = oct_bandpass_filter(fc, fs)
@@ -38,6 +43,9 @@ def plot_filter_bank(fs):
     plt.xlabel('$f$ (Hz)')
     plt.ylabel('$|H(e^{j2\pi f/f_s})|$ (dB)')
     plt.title('Designed filter bank')
+    if fname:
+        plt.savefig(f'./output/{fname}.png', transparent=True, bbox_inches='tight')
+    plt.show()
 
 
 def calculate_t60(rir, fs, fc=None, plot=False):
